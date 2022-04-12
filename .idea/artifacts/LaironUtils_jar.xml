@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="LaironUtils:jar">
+    <output-path>$USER_HOME$/Desktop</output-path>
+    <root id="archive" name="LaironUtils.jar">
+      <element id="module-output" name="LaironUtils" />
+    </root>
+  </artifact>
+</component>
