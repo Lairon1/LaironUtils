@@ -6,13 +6,15 @@ import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.trait.LookClose;
 import net.citizensnpcs.trait.ScoreboardTrait;
 import net.citizensnpcs.trait.SkinTrait;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.plugin.Plugin;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -20,13 +22,14 @@ import java.util.function.Consumer;
 
 public class CustomNPC {
 
-    public static final Set<NPC> ALL_NPC_SET = new HashSet<>();
     public static final Set<CustomNPC> ALL_CUSTOM_NPC = new HashSet<>();
 
     private final Location spawned;
     private final NPC npc;
     private ArmorStand sitStand;
-    private Consumer<PlayerInteractAtEntityEvent> onClick;
+    private Consumer<PlayerInteractAtEntityEvent> onInteract;
+    private Consumer<EntityDeathEvent> onDeath;
+    private static boolean isListenersSet = false;
 
     public CustomNPC(Location location, String nickname) {
         this.npc = CitizensAPI.getNPCRegistry().createNPC(EntityType.PLAYER, nickname);
@@ -34,7 +37,6 @@ public class CustomNPC {
 
         npc.data().set("player-skin-use-latest-skin", false);
 
-        ALL_NPC_SET.add(npc);
         ALL_CUSTOM_NPC.add(this);
     }
 
@@ -48,7 +50,6 @@ public class CustomNPC {
         return this;
     }
 
-
     public CustomNPC skin(String name) {
         SkinTrait skinTrait = npc.getTrait(SkinTrait.class);
         skinTrait.setSkinName(name);
@@ -56,20 +57,19 @@ public class CustomNPC {
         return this;
     }
 
-
-    public CustomNPC sit(boolean sit){
-        if(sit){
-            if(getEntity() == null) return this;
-            if(sitStand != null) sitStand.remove();
-            sitStand = (ArmorStand) npc.getEntity().getWorld().spawnEntity(npc.getEntity().getLocation().clone().subtract(0,1,0), EntityType.ARMOR_STAND);
+    public CustomNPC sit(boolean sit) {
+        if (sit) {
+            if (getEntity() == null) return this;
+            if (sitStand != null) sitStand.remove();
+            sitStand = (ArmorStand) npc.getEntity().getWorld().spawnEntity(npc.getEntity().getLocation().clone().subtract(0, 1, 0), EntityType.ARMOR_STAND);
             sitStand.setGravity(false);
             sitStand.setPersistent(true);
             sitStand.setRemoveWhenFarAway(false);
             sitStand.setVisible(false);
             sitStand.addPassenger(npc.getEntity());
 
-        }else{
-            if(sitStand!= null){
+        } else {
+            if (sitStand != null) {
                 sitStand.getPassengers().remove(0);
                 sitStand.remove();
             }
@@ -99,25 +99,57 @@ public class CustomNPC {
         return new CustomNPC(spawn, nickname);
     }
 
-    public void setOnClickListener(Consumer<PlayerInteractAtEntityEvent> e){
-        onClick = e;
+    public CustomNPC onInteractListener(Consumer<PlayerInteractAtEntityEvent> e) {
+        onInteract = e;
+        return this;
     }
 
-    public static void onNPCClick(PlayerInteractAtEntityEvent e){
-        if(!CitizensAPI.getNPCRegistry().isNPC(e.getRightClicked())) return;
+    public CustomNPC onDeathListener(Consumer<EntityDeathEvent> e) {
+        onDeath = e;
+        return this;
+    }
+
+    public static void onNPCInteract(PlayerInteractAtEntityEvent e) {
+        if (!CitizensAPI.getNPCRegistry().isNPC(e.getRightClicked())) return;
         for (CustomNPC npc : ALL_CUSTOM_NPC) {
-            if(npc.getEntity() == null) continue;
-            if(npc.getEntity() == e.getRightClicked()){
-                if(npc.onClick == null) return;
-                npc.onClick.accept(e);
+            if (npc.getEntity() == null) continue;
+            if (npc.getEntity() == e.getRightClicked()) {
+                if (npc.onInteract == null) return;
+                npc.onInteract.accept(e);
             }
         }
-
     }
 
-    public static void ping(){}
+    public static void onNPCDeath(EntityDeathEvent e) {
+        if (!CitizensAPI.getNPCRegistry().isNPC(e.getEntity())) return;
+        for (CustomNPC npc : ALL_CUSTOM_NPC) {
+            if (npc.getEntity() == null) continue;
+            if (npc.getEntity() == e.getEntity()) {
+                if (npc.onDeath == null) return;
+                npc.onDeath.accept(e);
+            }
+        }
+    }
+
+    public static void setListeners(Plugin plugin) {
+        if (isListenersSet) return;
+        Bukkit.getPluginManager().registerEvents(new Listener() {
+            @EventHandler
+            public void onInteract(PlayerInteractAtEntityEvent e) {
+                onNPCInteract(e);
+            }
+
+            @EventHandler
+            public void onDeath(EntityDeathEvent e) {
+                onNPCDeath(e);
+            }
+
+        }, plugin);
+    }
 
     public static void disable() {
-        for (NPC npc : ALL_NPC_SET) npc.destroy();
+        ALL_CUSTOM_NPC.forEach(n -> n.npc.destroy());
     }
+
+
 }

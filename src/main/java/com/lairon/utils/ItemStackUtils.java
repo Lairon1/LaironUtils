@@ -1,5 +1,6 @@
 package com.lairon.utils;
 
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -40,6 +41,7 @@ public class ItemStackUtils {
     public static ItemStack setUnbreakable(ItemStack itemStack){
         return  setUnbreakable(itemStack, true);
     }
+
     public static ItemStack setUnbreakable (ItemStack itemStack, boolean visible){
         ItemMeta meta = itemStack.getItemMeta();
         meta.setUnbreakable(true);
@@ -68,6 +70,7 @@ public class ItemStackUtils {
         return item1.getItemMeta().getDisplayName().equals(item2.getItemMeta().getDisplayName());
     }
 
+
     public static void giveItem(Player player, ItemStack item) {
         for (ItemStack slotItem : player.getInventory().getStorageContents()) {
             if (slotItem == null) {
@@ -76,6 +79,58 @@ public class ItemStackUtils {
             }
         }
         player.getWorld().dropItem(player.getLocation(), item);
+    }
+
+    public class ItemStackBuilder {
+
+        private ItemStack stack;
+
+
+        public ItemStackBuilder(Material material) {
+            stack = new ItemStack(material);
+        }
+
+        public ItemStack build() {
+            return stack;
+        }
+
+
+        public ItemStackBuilder name(String name) {
+            ItemStackUtils.setDisplayName(stack, name);
+            return this;
+        }
+
+
+        public ItemStackBuilder lore(ArrayList<String> lore) {
+            ItemStackUtils.setLore(stack, lore);
+            return this;
+        }
+
+        public ItemStackBuilder lore(String... lore) {
+            ItemStackUtils.setLore(stack, lore);
+            return this;
+        }
+
+        public ItemStackBuilder enchantment(Enchantment enchantment, int lvl) {
+            addEnchantment(stack, enchantment, lvl);
+            return this;
+        }
+
+        public ItemStackBuilder unbreakable() {
+            setUnbreakable(stack, true);
+            return this;
+        }
+
+        public ItemStackBuilder unbreakable(boolean visible) {
+            setUnbreakable(stack, visible);
+            return this;
+        }
+
+        public ItemStackBuilder customModelData(ItemStack itemStack, int data) {
+            setCustomModelData(stack, data);
+            return this;
+        }
+
     }
 
 }

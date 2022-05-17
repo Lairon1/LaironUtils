@@ -21,15 +21,18 @@ import java.io.IOException;
 
 public class WorldEditUtils {
 
-    public static void setSchematic(Location loc, File file){
+    public static EditSession setSchematic(Location loc, File file){
+        EditSession editSessionRet = null;
         com.sk89q.worldedit.world.World adaptedWorld = BukkitAdapter.adapt(loc.getWorld());
         ClipboardFormat format = ClipboardFormats.findByFile(file);
         try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
             Clipboard clipboard = reader.read();
             try (EditSession editSession = WorldEdit.getInstance().getEditSessionFactory().getEditSession(adaptedWorld,
                     -1)) {
+                editSessionRet = editSession;
                 Operation operation = new ClipboardHolder(clipboard).createPaste(editSession)
                         .to(BlockVector3.at(loc.getBlockX(), loc.getBlockY(),loc.getBlockZ())).ignoreAirBlocks(true).build();
+                
                 try {
                     Operations.complete(operation);
                     editSession.flushSession();
@@ -42,6 +45,7 @@ public class WorldEditUtils {
         } catch (IOException exxx) {
             exxx.printStackTrace();
         }
+        return editSessionRet;
     }
 
 }
