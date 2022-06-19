@@ -1,75 +1,94 @@
 package com.lairon.utils;
 
-import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class ItemStackUtils {
 
-    public static ItemStack setDisplayName(ItemStack itemStack, String name){
+    public static ItemStack setDisplayName(ItemStack itemStack, String name) {
         ItemMeta meta = itemStack.getItemMeta();
         meta.setDisplayName(name);
         itemStack.setItemMeta(meta);
         return itemStack;
     }
 
-    public static ItemStack setLore(ItemStack itemStack, ArrayList<String> lore){
+    public static ItemStack setLore(ItemStack itemStack, List<String> lore) {
         ItemMeta meta = itemStack.getItemMeta();
         meta.setLore(lore);
         itemStack.setItemMeta(meta);
         return itemStack;
     }
 
-    public static ItemStack setLore(ItemStack itemStack, String... lore){
+    public static ItemStack setLore(ItemStack itemStack, String... lore) {
         ArrayList<String> c = new ArrayList<>();
         Collections.addAll(c, lore);
         return setLore(itemStack, c);
     }
 
-    public static ItemStack addEnchantment(ItemStack itemStack, Enchantment enchantment, int lvl){
+    public static ItemStack addEnchantment(ItemStack itemStack, Enchantment enchantment, int lvl) {
         ItemMeta meta = itemStack.getItemMeta();
         meta.addEnchant(enchantment, lvl, true);
         itemStack.setItemMeta(meta);
         return itemStack;
     }
-    public static ItemStack setUnbreakable(ItemStack itemStack){
-        return  setUnbreakable(itemStack, true);
+
+    public static ItemStack setUnbreakable(ItemStack itemStack) {
+        return setUnbreakable(itemStack, true);
     }
 
-    public static ItemStack setUnbreakable (ItemStack itemStack, boolean visible){
+    public static ItemStack setUnbreakable(ItemStack itemStack, boolean visible) {
         ItemMeta meta = itemStack.getItemMeta();
         meta.setUnbreakable(true);
-        if(!visible) meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
+        if (!visible) meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
         itemStack.setItemMeta(meta);
-        return  itemStack;
+        return itemStack;
     }
 
-    public static ItemStack setCustomModelData(ItemStack itemStack, int data){
-        ItemMeta meta = itemStack.getItemMeta();
+    public static ItemStack addFlag(ItemStack stack, ItemFlag... flags) {
+        ItemMeta meta = stack.getItemMeta();
+        meta.addItemFlags(flags);
+        stack.setItemMeta(meta);
+        return stack;
+    }
+
+    public static ItemStack setCustomModelData(ItemStack stack, int data){
+        ItemMeta meta = stack.getItemMeta();
         meta.setCustomModelData(data);
-        itemStack.setItemMeta(meta);
-        return  itemStack;
+        stack.setItemMeta(meta);
+        return stack;
     }
 
-    public static boolean equalsItemsByName(ItemStack item1, ItemStack item2){
-        if(item1 == null) return false;
-        if(item2 == null) return false;
+    public static boolean equalsItemsByName(ItemStack item1, ItemStack item2) {
+        if (item1 == null) return false;
+        if (item2 == null) return false;
 
-        if(item1.getItemMeta() == null) return false;
-        if(item2.getItemMeta() == null) return false;
+        if (item1.getItemMeta() == null) return false;
+        if (item2.getItemMeta() == null) return false;
 
-        if(item1.getItemMeta().getDisplayName() == null) return false;
-        if(item2.getItemMeta().getDisplayName() == null) return false;
+        if (item1.getItemMeta().getDisplayName() == null) return false;
+        if (item2.getItemMeta().getDisplayName() == null) return false;
 
         return item1.getItemMeta().getDisplayName().equals(item2.getItemMeta().getDisplayName());
     }
 
+
+    public static ItemStack addData(ItemStack itemStack, NamespacedKey key, PersistentDataType type, Object data) {
+        ItemMeta meta = itemStack.getItemMeta();
+        PersistentDataContainer persistentDataContainer = meta.getPersistentDataContainer();
+        persistentDataContainer.set(key, type, data);
+        itemStack.setItemMeta(meta);
+        return itemStack;
+    }
 
     public static void giveItem(Player player, ItemStack item) {
         for (ItemStack slotItem : player.getInventory().getStorageContents()) {
@@ -81,56 +100,5 @@ public class ItemStackUtils {
         player.getWorld().dropItem(player.getLocation(), item);
     }
 
-    public class ItemStackBuilder {
-
-        private ItemStack stack;
-
-
-        public ItemStackBuilder(Material material) {
-            stack = new ItemStack(material);
-        }
-
-        public ItemStack build() {
-            return stack;
-        }
-
-
-        public ItemStackBuilder name(String name) {
-            ItemStackUtils.setDisplayName(stack, name);
-            return this;
-        }
-
-
-        public ItemStackBuilder lore(ArrayList<String> lore) {
-            ItemStackUtils.setLore(stack, lore);
-            return this;
-        }
-
-        public ItemStackBuilder lore(String... lore) {
-            ItemStackUtils.setLore(stack, lore);
-            return this;
-        }
-
-        public ItemStackBuilder enchantment(Enchantment enchantment, int lvl) {
-            addEnchantment(stack, enchantment, lvl);
-            return this;
-        }
-
-        public ItemStackBuilder unbreakable() {
-            setUnbreakable(stack, true);
-            return this;
-        }
-
-        public ItemStackBuilder unbreakable(boolean visible) {
-            setUnbreakable(stack, visible);
-            return this;
-        }
-
-        public ItemStackBuilder customModelData(ItemStack itemStack, int data) {
-            setCustomModelData(stack, data);
-            return this;
-        }
-
-    }
 
 }

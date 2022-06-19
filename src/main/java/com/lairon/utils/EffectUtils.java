@@ -153,13 +153,13 @@ public class EffectUtils {
         }
     }
 
-    public void drawHeart(Location loc, double maxRadius, ParticleBuilder builder) {
+    public static void drawHeart(Location loc, double maxRadius, ParticleBuilder builder) {
         double r, x, y;
         for (int angle = 0; angle < 50; angle++) {
             r = 1 - sin(angle);
             x = cos(angle) * r * maxRadius + loc.getX();
             y = sin(angle) * r * maxRadius + loc.getY();
-            var add = loc.clone().set(x, y, 0);
+            Location add = loc.clone().set(x, y, 0);
             builder.location(add).spawn();
         }
     }
