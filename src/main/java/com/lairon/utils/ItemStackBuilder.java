@@ -13,7 +13,6 @@ public class ItemStackBuilder {
 
     private ItemStack stack;
 
-
     public ItemStackBuilder(Material material) {
         stack = new ItemStack(material);
     }
